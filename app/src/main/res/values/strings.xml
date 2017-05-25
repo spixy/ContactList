@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">ContactList</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_contact">ContactActivity</string>
+    <string name="create_new">Create new</string>
+    <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="delete_contact">Delete contact?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="name">Name</string>
+    <string name="surname">Surame</string>
+    <string name="contact">Contact</string>
+    <string name="email">E-Mail</string>
+    <string name="adress">Adress</string>
+    <string name="phone">Phone</string>
+</resources>
