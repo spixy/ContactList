@@ -27,6 +27,15 @@ public class DBManager extends SQLiteOpenHelper
     public static final String CONTACTS_COLUMN_PICTURE = "picture";
 
     private static final String[] COLUMNS_TO_SHOW = new String[] { CONTACTS_COLUMN_NAME, CONTACTS_COLUMN_SURNAME };
+    private static final String[] COLUMNS_IMAGE_ONLY = new String[] { CONTACTS_COLUMN_PICTURE };
+    private static final String[] COLUMNS_NO_IMAGE = new String[] {
+            CONTACTS_COLUMN_ID,
+            CONTACTS_COLUMN_NAME,
+            CONTACTS_COLUMN_SURNAME,
+            CONTACTS_COLUMN_ADDRESS,
+            CONTACTS_COLUMN_PHONE,
+            CONTACTS_COLUMN_EMAIL
+    };
 
     public DBManager(Context context)
     {
@@ -52,23 +61,39 @@ public class DBManager extends SQLiteOpenHelper
 
     public ContactDTO getContact(int id)
     {
-        //Cursor cursor = this.getReadableDatabase().rawQuery("select * from " + CONTACTS_TABLE_NAME + " where " + CONTACTS_COLUMN_ID + " = ?",
-        //                                                    new String[] { Integer.toString(id) });
-        Cursor cursor = this.getReadableDatabase().query(false, CONTACTS_TABLE_NAME, null, CONTACTS_COLUMN_ID + " = ? ",
-                                                            new String[] { Integer.toString(id) }, null, null, null, null);
+        ContactDTO dto = new ContactDTO();
 
+        Cursor cursor = this.getReadableDatabase().query(false, CONTACTS_TABLE_NAME, COLUMNS_NO_IMAGE, CONTACTS_COLUMN_ID + " = ? ",
+                                                            new String[] { Integer.toString(id) }, null, null, null, null);
         if (cursor == null)
         {
             return null;
         }
-
         if (!cursor.moveToFirst())
         {
             cursor.close();
             return null;
         }
 
-        return new ContactDTO(cursor);
+        dto.setInformation(cursor);
+        cursor.close();
+
+        cursor = this.getReadableDatabase().query(false, CONTACTS_TABLE_NAME, COLUMNS_IMAGE_ONLY, CONTACTS_COLUMN_ID + " = ? ",
+                new String[] { Integer.toString(id) }, null, null, null, null);
+        if (cursor == null)
+        {
+            return null;
+        }
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return null;
+        }
+
+        dto.setPicture(cursor);
+        cursor.close();
+
+        return dto;
     }
 
     public ArrayList<String> getAllContactsFullNames()

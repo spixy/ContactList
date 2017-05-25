@@ -86,21 +86,12 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
 
         ContactDTO contact = mydb.getContact(id);
 
-        try
-        {
-            name.setText(contact.getName());
-            surname.setText(contact.getSurname());
-            address.setText(contact.getAddress());
-            phone.setText(contact.getPhone());
-            email.setText(contact.getEmail());
-            image.setImageBitmap(contact.getPicture());
-        }
-        catch (Exception ex)
-        {
-            error("Cannot load contact with ID " + id + ": " + ex.getMessage());
-            Toast.makeText(getApplicationContext(), "Cannot load contact with ID " + id + ": " + ex.getMessage(), Toast.LENGTH_SHORT).show();
-            finish();
-        }
+        name.setText(contact.getName());
+        surname.setText(contact.getSurname());
+        address.setText(contact.getAddress());
+        phone.setText(contact.getPhone());
+        email.setText(contact.getEmail());
+        image.setImageBitmap(contact.getPicture());
     }
 
     @Override

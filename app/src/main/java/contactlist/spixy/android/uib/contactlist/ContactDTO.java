@@ -6,26 +6,39 @@ package contactlist.spixy.android.uib.contactlist;
 
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.util.Log;
 
 public class ContactDTO
 {
     private String name;
+    private int id;
     private String surname;
     private String address;
     private String phone;
     private String email;
     private Bitmap picture;
 
-    public ContactDTO(Cursor cursor)
+    public ContactDTO setInformation(Cursor cursor)
     {
+        this.setId(cursor);
         this.setName(cursor);
         this.setSurname(cursor);
         this.setAddress(cursor);
         this.setPhone(cursor);
         this.setEmail(cursor);
-        this.setImage(cursor);
+        return this;
+    }
 
-        cursor.close();
+    public ContactDTO setPicture(Cursor cursor)
+    {
+        this.setImage(cursor);
+        return this;
+    }
+
+    private void setId(Cursor cursor)
+    {
+        int index = cursor.getColumnIndex(DBManager.CONTACTS_COLUMN_ID);
+        id = cursor.getInt(index);
     }
 
     private void setName(Cursor cursor)
@@ -60,8 +73,21 @@ public class ContactDTO
 
     private void setImage(Cursor cursor)
     {
-        byte[] byteArray = cursor.getBlob(cursor.getColumnIndex(DBManager.CONTACTS_COLUMN_PICTURE));
-        this.picture = Utility.BytesToBitmap(byteArray);
+        try
+        {
+            int index = cursor.getColumnIndex(DBManager.CONTACTS_COLUMN_PICTURE);
+            byte[] byteArray = cursor.getBlob(index); // TODO: fix error in cursor.getBlob()
+            this.picture = Utility.BytesToBitmap(byteArray);
+        }
+        catch (Exception ex)
+        {
+            error(ex.getMessage());
+        }
+    }
+
+    public int getId()
+    {
+        return id;
     }
 
     public String getName()
@@ -92,5 +118,10 @@ public class ContactDTO
     public Bitmap getPicture()
     {
         return picture;
+    }
+
+    private static void error(String str)
+    {
+        Log.e("ContacdDTO", str);
     }
 }
