@@ -2,11 +2,11 @@ package contactlist.spixy.android.uib.contactlist;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -24,25 +24,13 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
 {
     private DBManager mydb;
 
+    private String imageFile;
     private ImageView image;
     private TextView name;
     private TextView surname;
     private TextView address;
     private TextView phone;
     private TextView email;
-
-    private Bitmap GetBitmapFromImageView()
-    {
-        try
-        {
-            return ((BitmapDrawable)image.getDrawable()).getBitmap();
-        }
-        catch (Exception ex)
-        {
-            error("Empty bitmap on picture");
-            return null;
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -65,7 +53,7 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
 
         if (id > -1)
         {
-            LoadContact(id);
+            Load(id);
 
             Button deleteButton = (Button) findViewById(R.id.delete_button);
             deleteButton.setVisibility(View.VISIBLE);
@@ -77,21 +65,35 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
             address.setText("address");
             email.setText("email");
             phone.setText("phone");
+            imageFile = null;
         }
     }
 
-    private void LoadContact(int id)
+    private void Load(int id)
     {
-        log("LoadContact " + id);
+        log("Load " + id);
 
-        ContactDTO contact = mydb.getContact(id);
+        ContactFullDTO contact = mydb.getContact(id);
+
+        if (contact == null)
+            return;
 
         name.setText(contact.getName());
         surname.setText(contact.getSurname());
         address.setText(contact.getAddress());
         phone.setText(contact.getPhone());
         email.setText(contact.getEmail());
-        image.setImageBitmap(contact.getPicture());
+
+        imageFile = contact.getPicture();
+        if (imageFile != null)
+        {
+            image.setImageBitmap(BitmapFactory.decodeFile(imageFile));
+        }
+        else
+        {
+            Drawable drawable = ContextCompat.getDrawable(this, R.drawable.avatar_placeholder);
+            image.setImageDrawable(drawable);
+        }
     }
 
     @Override
@@ -132,7 +134,7 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
                         phone.getText().toString(),
                         email.getText().toString(),
                         address.getText().toString(),
-                        Utility.BitmapToBytes(GetBitmapFromImageView()));
+                        imageFile);
         }
         else
         {
@@ -143,7 +145,7 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
                         phone.getText().toString(),
                         email.getText().toString(),
                         address.getText().toString(),
-                        Utility.BitmapToBytes(GetBitmapFromImageView()));
+                        imageFile);
         }
 
         Toast.makeText(getApplicationContext(), result ? "Success" : "An error has occurred", Toast.LENGTH_SHORT).show();
@@ -194,9 +196,8 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
     }
 
     public void fileSelected(File file) {
-
-        Bitmap bmp = BitmapFactory.decodeFile(file.getPath());
-        image.setImageBitmap(bmp);
+        imageFile = file.getPath();
+        image.setImageBitmap(BitmapFactory.decodeFile(imageFile));
     }
 
     public void SaveMenuClick()

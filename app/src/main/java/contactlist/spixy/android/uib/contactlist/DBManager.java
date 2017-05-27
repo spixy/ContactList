@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -26,16 +27,19 @@ public class DBManager extends SQLiteOpenHelper
     public static final String CONTACTS_COLUMN_EMAIL = "email";
     public static final String CONTACTS_COLUMN_PICTURE = "picture";
 
-    private static final String[] COLUMNS_TO_SHOW = new String[] { CONTACTS_COLUMN_NAME, CONTACTS_COLUMN_SURNAME };
-    private static final String[] COLUMNS_IMAGE_ONLY = new String[] { CONTACTS_COLUMN_PICTURE };
-    private static final String[] COLUMNS_NO_IMAGE = new String[] {
+    private static final String[] COLUMNS_GET_SIMPLE_CONTACT = new String[] {
+            CONTACTS_COLUMN_ID,
+            CONTACTS_COLUMN_NAME,
+            CONTACTS_COLUMN_SURNAME };
+
+    private static final String[] COLUMNS_GET_FULL_CONTACT = new String[] {
             CONTACTS_COLUMN_ID,
             CONTACTS_COLUMN_NAME,
             CONTACTS_COLUMN_SURNAME,
-            CONTACTS_COLUMN_ADDRESS,
             CONTACTS_COLUMN_PHONE,
-            CONTACTS_COLUMN_EMAIL
-    };
+            CONTACTS_COLUMN_ADDRESS,
+            CONTACTS_COLUMN_EMAIL,
+            CONTACTS_COLUMN_PICTURE };
 
     public DBManager(Context context)
     {
@@ -52,19 +56,20 @@ public class DBManager extends SQLiteOpenHelper
                 CONTACTS_COLUMN_PHONE   + " text, " +
                 CONTACTS_COLUMN_ADDRESS + " text, " +
                 CONTACTS_COLUMN_EMAIL   + " text, " +
-                CONTACTS_COLUMN_PICTURE + " blob)");
+                CONTACTS_COLUMN_PICTURE + " text)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
 
-    public ContactDTO getContact(int id)
+    public ContactFullDTO getContact(int id)
     {
-        ContactDTO dto = new ContactDTO();
+        log("getContact " + id);
 
-        Cursor cursor = this.getReadableDatabase().query(false, CONTACTS_TABLE_NAME, COLUMNS_NO_IMAGE, CONTACTS_COLUMN_ID + " = ? ",
+        Cursor cursor = this.getReadableDatabase().query(false, CONTACTS_TABLE_NAME, COLUMNS_GET_FULL_CONTACT, CONTACTS_COLUMN_ID + " = ?",
                                                             new String[] { Integer.toString(id) }, null, null, null, null);
+
         if (cursor == null)
         {
             return null;
@@ -74,33 +79,21 @@ public class DBManager extends SQLiteOpenHelper
             cursor.close();
             return null;
         }
-
-        dto.setInformation(cursor);
-        cursor.close();
-
-        cursor = this.getReadableDatabase().query(false, CONTACTS_TABLE_NAME, COLUMNS_IMAGE_ONLY, CONTACTS_COLUMN_ID + " = ? ",
-                new String[] { Integer.toString(id) }, null, null, null, null);
-        if (cursor == null)
+        if (cursor.getCount() == 0)
         {
             return null;
         }
-        if (!cursor.moveToFirst())
-        {
-            cursor.close();
-            return null;
-        }
 
-        dto.setPicture(cursor);
+        ContactFullDTO dto = new ContactFullDTO(cursor);
         cursor.close();
-
         return dto;
     }
 
-    public ArrayList<String> getAllContactsFullNames()
+    public ArrayList<ContactSimpleDTO> getAllContacts()
     {
-        ArrayList<String> array_list = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(false, CONTACTS_TABLE_NAME, COLUMNS_TO_SHOW, null, null, null, null, null, null);
+        log("getAllContacts");
+        ArrayList<ContactSimpleDTO> array_list = new ArrayList<>();
+        Cursor cursor = this.getReadableDatabase().query(false, CONTACTS_TABLE_NAME, COLUMNS_GET_SIMPLE_CONTACT, null, null, null, null, null, null);
 
         if (cursor == null)
         {
@@ -114,7 +107,7 @@ public class DBManager extends SQLiteOpenHelper
 
         while (!cursor.isAfterLast())
         {
-            array_list.add(cursor.getString(0) + " " + cursor.getString(1));
+            array_list.add(new ContactSimpleDTO(cursor));
             cursor.moveToNext();
         }
 
@@ -122,8 +115,9 @@ public class DBManager extends SQLiteOpenHelper
         return array_list;
     }
 
-    public Boolean insertContact(String name, String surname, String phone, String email, String address, byte[] picture)
+    public Boolean insertContact(String name, String surname, String phone, String email, String address, String picture)
     {
+        log("insertContact");
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(CONTACTS_COLUMN_NAME, name);
@@ -135,8 +129,9 @@ public class DBManager extends SQLiteOpenHelper
         return db.insert(CONTACTS_TABLE_NAME, null, contentValues) != -1;
     }
 
-    public Boolean updateContact(int id, String name, String surname, String phone, String email, String address, byte[] picture)
+    public Boolean updateContact(int id, String name, String surname, String phone, String email, String address, String picture)
     {
+        log("updateContact " + id);
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(CONTACTS_COLUMN_NAME, name);
@@ -150,7 +145,18 @@ public class DBManager extends SQLiteOpenHelper
 
     public Boolean deleteContact(int id)
     {
+        log("deleteContact " + id);
         SQLiteDatabase db = this.getWritableDatabase();
         return db.delete(CONTACTS_TABLE_NAME, CONTACTS_COLUMN_ID + " = ?", new String[] { Integer.toString(id) }) > 0;
+    }
+
+    private static void log(String str)
+    {
+        Log.i("DBManager", str);
+    }
+
+    private static void error(String str)
+    {
+        Log.e("DBManager", str);
     }
 }

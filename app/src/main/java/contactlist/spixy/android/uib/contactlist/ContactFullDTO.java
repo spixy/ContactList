@@ -5,10 +5,9 @@ package contactlist.spixy.android.uib.contactlist;
  */
 
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.util.Log;
 
-public class ContactDTO
+public class ContactFullDTO
 {
     private String name;
     private int id;
@@ -16,9 +15,9 @@ public class ContactDTO
     private String address;
     private String phone;
     private String email;
-    private Bitmap picture;
+    private String picture;
 
-    public ContactDTO setInformation(Cursor cursor)
+    public ContactFullDTO(Cursor cursor)
     {
         this.setId(cursor);
         this.setName(cursor);
@@ -26,13 +25,7 @@ public class ContactDTO
         this.setAddress(cursor);
         this.setPhone(cursor);
         this.setEmail(cursor);
-        return this;
-    }
-
-    public ContactDTO setPicture(Cursor cursor)
-    {
-        this.setImage(cursor);
-        return this;
+        this.setPicture(cursor);
     }
 
     private void setId(Cursor cursor)
@@ -71,18 +64,10 @@ public class ContactDTO
         this.phone = cursor.getString(index);
     }
 
-    private void setImage(Cursor cursor)
+    private void setPicture(Cursor cursor)
     {
-        try
-        {
-            int index = cursor.getColumnIndex(DBManager.CONTACTS_COLUMN_PICTURE);
-            byte[] byteArray = cursor.getBlob(index); // TODO: fix error in cursor.getBlob()
-            this.picture = Utility.BytesToBitmap(byteArray);
-        }
-        catch (Exception ex)
-        {
-            error(ex.getMessage());
-        }
+        int index = cursor.getColumnIndex(DBManager.CONTACTS_COLUMN_PICTURE);
+        this.picture = cursor.getString(index);
     }
 
     public int getId()
@@ -115,7 +100,7 @@ public class ContactDTO
         return email;
     }
 
-    public Bitmap getPicture()
+    public String getPicture()
     {
         return picture;
     }

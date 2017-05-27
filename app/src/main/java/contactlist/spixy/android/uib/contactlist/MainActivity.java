@@ -9,7 +9,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import android.widget.AdapterView.OnItemClickListener;
-
 import java.util.ArrayList;
 
 /**
@@ -20,6 +19,7 @@ public class MainActivity extends Activity
 {
     private DBManager mydb;
     private ListView listView;
+    private ArrayList<ContactSimpleDTO> contactsList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +53,15 @@ public class MainActivity extends Activity
 
     private void Load()
     {
-        ArrayList<String> contactNames = mydb.getAllContactsFullNames();
-        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, contactNames);
+        contactsList = mydb.getAllContacts();
 
+        ArrayList<String> contacts = new ArrayList<>();
+        for (ContactSimpleDTO c : contactsList)
+        {
+            contacts.add(c.getName() + " " + c.getSurname());
+        }
+
+        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, contacts);
         listView.setAdapter(arrayAdapter);
 
         listView.setOnItemClickListener(new OnItemClickListener()
@@ -63,8 +69,11 @@ public class MainActivity extends Activity
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
-                log("onItemClick, " + position + ", " + id);
-                launchContactActivity(position + 1);
+                int dbID = contactsList.get(position).getId();
+
+                log("onItemClick, " + position + ", " + id + " => " + dbID);
+
+                launchContactActivity(dbID);
             }
         });
     }
