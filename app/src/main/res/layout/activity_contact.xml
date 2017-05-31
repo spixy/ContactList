@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="contactlist.spixy.android.uib.contactlist.ContactActivity">
 
-    <ImageView
-        android:id="@+id/contact_image"
-        android:contentDescription="@string/contact_picture"
-        android:layout_width="120dp"
+    <fragment
+        android:id="@+id/contact_picture_fragment"
+        android:name="contactlist.spixy.android.uib.contactlist.ContactPictureFragment"
+        android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:layout_weight="1"
-        android:clickable="true"
-        android:scaleType="fitStart"
-        android:visibility="visible"
-        android:src="@drawable/avatar_placeholder"
-        app:srcCompat="@drawable/avatar_placeholder"
-        android:layout_gravity="center_horizontal"/>
+        android:layout_weight="2"
+        tools:layout="@layout/fragment_contact_picture"/>
 
     <LinearLayout
         android:layout_width="match_parent"

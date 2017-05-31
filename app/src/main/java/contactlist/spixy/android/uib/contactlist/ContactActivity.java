@@ -1,26 +1,33 @@
 package contactlist.spixy.android.uib.contactlist;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
+import java.io.IOException;
 
-public class ContactActivity extends AppCompatActivity implements OnClickListener, FileDialog.FileSelectedListener
+public class ContactActivity extends FragmentActivity
 {
     private DBManager mydb;
 
@@ -182,22 +189,74 @@ public class ContactActivity extends AppCompatActivity implements OnClickListene
         ad.show();
     }
 
-    @Override
-    public void onClick(View v)
+    static final int REQUEST_PERMISSION = 1;
+    static final int PICK_IMAGE_REQUEST = 2;
+
+    public void onImageClick(View v)
     {
         if (v != image)
             return;
 
-        File mPath = new File(Environment.getExternalStorageDirectory() + "//DIR//");
-        FileDialog fileDialog = new FileDialog(this, mPath, ".jpg");
-        fileDialog.addFileListener(this);
-        fileDialog.setSelectDirectoryOption(false);
-        fileDialog.showDialog();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+        {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
+        }
+        else
+        {
+            LoadImagePicker();
+        }
     }
 
-    public void fileSelected(File file) {
-        imageFile = file.getPath();
-        image.setImageBitmap(BitmapFactory.decodeFile(imageFile));
+    private void LoadImagePicker()
+    {
+        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions, @NonNull final int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                LoadImagePicker();
+            } else {
+                log("Permission not granted.");
+            }
+        }
+    }
+
+    private String getRealPathFromURI(Uri contentUri)
+    {
+        grantUriPermission("contactlist.spixy.android.uib.contactlist", contentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        Cursor cursor = null;
+        try {
+            cursor = getContentResolver().query(contentUri, new String[] { MediaStore.Images.Media.DATA }, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK) {
+            try
+            {
+                Bitmap bmp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
+                image.setImageBitmap(bmp);
+                imageFile = getRealPathFromURI(data.getData());
+            } catch (IOException e)
+            {
+                error(e.getMessage());
+            }
+        }
     }
 
     public void SaveMenuClick()
