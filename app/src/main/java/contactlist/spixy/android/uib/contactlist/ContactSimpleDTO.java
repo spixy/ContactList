@@ -12,12 +12,14 @@ public class ContactSimpleDTO
     private int id;
     private String name;
     private String surname;
+    private String picture;
 
     public ContactSimpleDTO(Cursor cursor)
     {
         this.setId(cursor);
         this.setName(cursor);
         this.setSurname(cursor);
+        this.setPicture(cursor);
     }
 
     private void setId(Cursor cursor)
@@ -38,6 +40,12 @@ public class ContactSimpleDTO
         this.surname = cursor.getString(index);
     }
 
+    private void setPicture(Cursor cursor)
+    {
+        int index = cursor.getColumnIndex(DBManager.CONTACTS_COLUMN_PICTURE);
+        this.picture = cursor.getString(index);
+    }
+
     public int getId()
     {
         return id;
@@ -53,8 +61,13 @@ public class ContactSimpleDTO
         return surname;
     }
 
+    public String getPicture()
+    {
+        return picture;
+    }
+
     private static void error(String str)
     {
-        Log.e("ContacdDTO", str);
+        Log.e("ContactSimpleDTO", str);
     }
 }
